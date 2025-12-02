@@ -130,7 +130,7 @@ class AuthService:
                 headers={"Accept": "application/json"},
                 data=utils.get_github_client_data(code),
             )
-            token_json = await response.json()
+            token_json = response.json()
 
         if "access_token" not in token_json:
             raise HTTPException(status_code=400, detail="Token exchange failed")
@@ -142,16 +142,23 @@ class AuthService:
                 "https://api.github.com/user",
                 headers={"Authorization": f"Bearer {token}"}
             )
-            info = await user_response.json()
+            info = user_response.json()
+
+        username = info.get("login")
+        full_name = info.get("name") or username
+        email = info.get("email")
+        if not email:
+            email = f"{username}@github.local"
 
         user = await self.db.scalar(
-            select(User).where(User.email == info.get("email"))
+            select(User).where(User.email == email)
         )
+
         if not user:
             user = User(
-                username=info.get("email"),
-                email=info.get("email"),
-                full_name=info.get("name"),
+                username=username,
+                email=email,
+                full_name=full_name,
                 role="user",
                 is_verified=True
             )

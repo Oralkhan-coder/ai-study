@@ -22,7 +22,7 @@ async def sign_up(data: schemas.SignUpRequest, service: AuthService = Depends(ge
     return await service.register(data)
 
 
-@router.get("/verify-email")
+@router.post("/verify-email")
 async def verify_email(token: str, request: Request, service: AuthService = Depends(get_auth_service)):
     template = Jinja2Templates(directory="src/resources/templates/")
 
@@ -32,10 +32,12 @@ async def verify_email(token: str, request: Request, service: AuthService = Depe
         {"request": request, "user": user}
     )
 
-@router.get("/google", response_model=TokenResponse)
+
+@router.post("/google", response_model=TokenResponse)
 async def google_auth(request: schemas.GoogleTokenRequest, service: AuthService = Depends(get_auth_service)):
     return await service.google_auth(request.id_token)
 
-@router.get("/github")
-async def login_with_github(code: str = None, service: AuthService = Depends(get_auth_service)):
+
+@router.post("/github")
+async def github_auth(code: str = None, service: AuthService = Depends(get_auth_service)):
     return await service.github_auth(code)
