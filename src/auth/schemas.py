@@ -19,3 +19,6 @@ class TokenResponse(BaseModel):
 
 class TokenData(BaseModel):
     email: str | None = None
+
+class GoogleTokenRequest(BaseModel):
+    id_token: str

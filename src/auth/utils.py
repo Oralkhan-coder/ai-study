@@ -14,7 +14,7 @@ SECRET_KEY = os.getenv("SECRET_KEY")
 ALGORITHM = os.getenv("ALGORITHM")
 ACCESS_TOKEN_EXPIRE_MINUTES = 15
 EMAIL_TOKEN_EXPIRE_MINUTES = 60  # 1 hour
-
+GOOGLE_CLIENT_ID = os.getenv("GOOGLE_CLIENT_ID")
 
 def hash_password(password: str) -> str:
     hashed = bcrypt.hashpw(password.encode("utf-8"), bcrypt.gensalt(rounds=12))
@@ -68,3 +68,7 @@ def create_email_verification_token(email: str) -> str:
 def verify_email_verification_token(token: str) -> str:
     payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
     return payload["sub"]
+
+def check_google_aud(aud: str):
+    if aud != GOOGLE_CLIENT_ID:
+        raise HTTPException(status_code=400, detail="Invalid id token.")

@@ -1,4 +1,6 @@
 from fastapi import HTTPException
+import httpx
+from jose import jwt
 from sqlalchemy import select
 from jinja2 import Template
 from pathlib import Path
@@ -90,3 +92,30 @@ class AuthService:
         user.is_verified = True
         await self.db.commit()
         return user
+
+    async def verify_google_token(self, token: str):
+        payload = jwt.get_unverified_claims(token)
+        utils.check_google_aud(payload.get('aud'))
+
+        async with httpx.AsyncClient() as client:
+            response = await client.get(f"https://oauth2.googleapis.com/tokeninfo?id_token={token}")
+            info = response.json()
+            utils.check_google_aud(info.get('aud'))
+
+        user = await self.db.scalar(
+            select(User).where(User.email == payload.get("email"))
+        )
+        if not user:
+            user = User(
+                username=payload.get("email"),
+                email=payload.get("email"),
+                full_name=payload.get("name"),
+                role="user",
+                is_verified=True
+            )
+            self.db.add(user)
+            await self.db.commit()
+            await self.db.refresh(user)
+
+        return TokenResponse(access_token=utils.create_access_token(data=
+                                schemas.TokenData(email=user.email).model_dump()))
