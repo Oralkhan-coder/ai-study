@@ -93,7 +93,7 @@ class AuthService:
         await self.db.commit()
         return user
 
-    async def verify_google_token(self, token: str):
+    async def google_auth(self, token: str):
         payload = jwt.get_unverified_claims(token)
         utils.check_google_aud(payload.get('aud'))
 
@@ -119,3 +119,48 @@ class AuthService:
 
         return TokenResponse(access_token=utils.create_access_token(data=
                                 schemas.TokenData(email=user.email).model_dump()))
+
+    async def github_auth(self, code: str):
+        if not code:
+            return utils.get_github_auth_url()
+
+        async with httpx.AsyncClient() as client:
+            response = await client.post(
+                "https://github.com/login/oauth/access_token",
+                headers={"Accept": "application/json"},
+                data=utils.get_github_client_data(code),
+            )
+            token_json = await response.json()
+
+        if "access_token" not in token_json:
+            raise HTTPException(status_code=400, detail="Token exchange failed")
+
+        token = token_json["access_token"]
+
+        async with httpx.AsyncClient() as client:
+            user_response = await client.get(
+                "https://api.github.com/user",
+                headers={"Authorization": f"Bearer {token}"}
+            )
+            info = await user_response.json()
+
+        user = await self.db.scalar(
+            select(User).where(User.email == info.get("email"))
+        )
+        if not user:
+            user = User(
+                username=info.get("email"),
+                email=info.get("email"),
+                full_name=info.get("name"),
+                role="user",
+                is_verified=True
+            )
+            self.db.add(user)
+            await self.db.commit()
+            await self.db.refresh(user)
+
+        return TokenResponse(
+            access_token=utils.create_access_token(
+                data=schemas.TokenData(email=user.email).model_dump()
+            )
+        )

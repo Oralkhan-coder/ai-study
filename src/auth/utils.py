@@ -15,6 +15,9 @@ ALGORITHM = os.getenv("ALGORITHM")
 ACCESS_TOKEN_EXPIRE_MINUTES = 15
 EMAIL_TOKEN_EXPIRE_MINUTES = 60  # 1 hour
 GOOGLE_CLIENT_ID = os.getenv("GOOGLE_CLIENT_ID")
+GITHUB_CLIENT_SECRET = os.getenv("GITHUB_CLIENT_SECRET")
+GITHUB_CLIENT_ID = os.getenv("GITHUB_CLIENT_ID")
+REDIRECT_URI = os.getenv("REDIRECT_URI")
 
 def hash_password(password: str) -> str:
     hashed = bcrypt.hashpw(password.encode("utf-8"), bcrypt.gensalt(rounds=12))
@@ -72,3 +75,17 @@ def verify_email_verification_token(token: str) -> str:
 def check_google_aud(aud: str):
     if aud != GOOGLE_CLIENT_ID:
         raise HTTPException(status_code=400, detail="Invalid id token.")
+
+def get_github_auth_url() -> str:
+    return (
+            f"https://github.com/login/oauth/authorize"
+            f"?client_id={GITHUB_CLIENT_ID}&redirect_uri={REDIRECT_URI}"
+        )
+
+def get_github_client_data(code: str) -> dict:
+    return {
+                    "client_id": GITHUB_CLIENT_ID,
+                    "client_secret": GITHUB_CLIENT_SECRET,
+                    "code": code,
+                    "redirect_uri": REDIRECT_URI,
+                }

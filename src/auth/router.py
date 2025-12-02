@@ -32,7 +32,10 @@ async def verify_email(token: str, request: Request, service: AuthService = Depe
         {"request": request, "user": user}
     )
 
-@router.get("/google-auth", response_model=TokenResponse)
+@router.get("/google", response_model=TokenResponse)
 async def google_auth(request: schemas.GoogleTokenRequest, service: AuthService = Depends(get_auth_service)):
-    return await service.verify_google_token(request.id_token)
+    return await service.google_auth(request.id_token)
 
+@router.get("/github")
+async def login_with_github(code: str = None, service: AuthService = Depends(get_auth_service)):
+    return await service.github_auth(code)
