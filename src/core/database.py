@@ -4,7 +4,7 @@ from typing import Any, AsyncGenerator
 from sqlalchemy.ext.asyncio import create_async_engine, async_sessionmaker, AsyncSession
 from dotenv import load_dotenv
 
-from src.model import BaseModel
+from src.core.model import BaseModel
 
 load_dotenv()
 DATABASE = os.getenv("DB")

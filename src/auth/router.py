@@ -22,7 +22,7 @@ async def sign_up(data: schemas.SignUpRequest, service: AuthService = Depends(ge
     return await service.register(data)
 
 
-@router.post("/verify-email")
+@router.get("/verify-email")
 async def verify_email(token: str, request: Request, service: AuthService = Depends(get_auth_service)):
     template = Jinja2Templates(directory="src/resources/templates/")
 

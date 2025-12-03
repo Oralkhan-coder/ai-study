@@ -2,7 +2,7 @@ from fastapi import Depends
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.auth.service import AuthService
-from src.database import get_db
+from src.core.database import get_db
 from src.shared.email_service import EmailService, get_email_service
 
 
