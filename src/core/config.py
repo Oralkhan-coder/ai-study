@@ -4,6 +4,7 @@ from starlette.middleware.cors import CORSMiddleware
 from src.auth.middleware import JWTAuthMiddleware
 from src.auth.router import router as auth_router
 from src.user.router import router as user_router
+from src.file.router import router as file_router
 
 def init_middleware(app: FastAPI):
     origins = [
@@ -25,3 +26,4 @@ def init_middleware(app: FastAPI):
 def init_routers(app: FastAPI):
     app.include_router(auth_router)
     app.include_router(user_router)
+    app.include_router(file_router)
