@@ -17,7 +17,7 @@ EMAIL_TOKEN_EXPIRE_MINUTES = 60  # 1 hour
 GOOGLE_CLIENT_ID = os.getenv("GOOGLE_CLIENT_ID")
 GITHUB_CLIENT_SECRET = os.getenv("GITHUB_CLIENT_SECRET")
 GITHUB_CLIENT_ID = os.getenv("GITHUB_CLIENT_ID")
-REDIRECT_URI = os.getenv("REDIRECT_URI")
+GITHUB_REDIRECT_URI = os.getenv("GITHUB_REDIRECT_URI")
 
 def hash_password(password: str) -> str:
     hashed = bcrypt.hashpw(password.encode("utf-8"), bcrypt.gensalt(rounds=12))
@@ -79,7 +79,7 @@ def check_google_aud(aud: str):
 def get_github_auth_url() -> str:
     return (
             f"https://github.com/login/oauth/authorize"
-            f"?client_id={GITHUB_CLIENT_ID}&redirect_uri={REDIRECT_URI}"
+            f"?client_id={GITHUB_CLIENT_ID}&redirect_uri={GITHUB_REDIRECT_URI}"
         )
 
 def get_github_client_data(code: str) -> dict:
@@ -87,5 +87,5 @@ def get_github_client_data(code: str) -> dict:
                     "client_id": GITHUB_CLIENT_ID,
                     "client_secret": GITHUB_CLIENT_SECRET,
                     "code": code,
-                    "redirect_uri": REDIRECT_URI,
+                    "redirect_uri": GITHUB_REDIRECT_URI,
                 }
