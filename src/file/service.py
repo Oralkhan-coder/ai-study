@@ -1,32 +1,27 @@
 import io
 import os
 import uuid
+import src.file.minio_client as minio
+import src.file.exceptions as exceptions
 
 from dotenv import load_dotenv
-from minio import Minio, S3Error
+from minio import S3Error
 from src.file.model import FileResource
 from sqlalchemy.ext.asyncio import AsyncSession
 
 load_dotenv()
-BUCKET_NAME = os.getenv("MINIO_BUCKET")
 PUBLIC_URL = os.getenv("MINIO_PUBLIC_URL")
 
 class FileService:
-    def __init__(self, db: AsyncSession, minio_client: Minio):
+    def __init__(self, db: AsyncSession):
         self.db = db
-        self.minio_client = minio_client
 
     async def store_file(self, file):
         try:
             file_name = f"{uuid.uuid4()}_{file.filename}"
             file_bytes = await file.read()
-            self.minio_client.put_object(
-                bucket_name=BUCKET_NAME,
-                object_name=file_name,
-                data=io.BytesIO(file_bytes),
-                length=len(file_bytes),
-                content_type=file.content_type
-            )
+            minio.upload_file_to_minio(file_name,file_bytes,
+                                       file.content_type)
 
             _, ext = os.path.splitext(file.filename)
             file_extension = ext.lstrip(".").lower()
@@ -45,3 +40,8 @@ class FileService:
         except S3Error as e:
             raise e
 
+    async def get_file(self, file_id: int):
+        file = await self.db.get(FileResource, file_id)
+        if not file:
+            raise exceptions.FileNotFoundError
+        return file
